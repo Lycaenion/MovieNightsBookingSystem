@@ -10,8 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import program.handlers.QueryHandler;
 import program.repositories.MovieRepository;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,23 +49,31 @@ public class MovieController {
     }
 
     @RequestMapping("/movie")
-    public Movie searchById(@RequestParam(value = "id") String id){
+    public Movie searchById(@RequestParam(value = "id") String id) throws SQLException {
         Movie movie = new Movie();
         RestTemplate template = new RestTemplate();
-        String result = template.getForObject("http://www.omdbapi.com/?i=" + id + "&apikey=fda66a87", String.class);
+        Connection conn = QueryHandler.connectDB();
 
-        JsonObject jsonObject = new JsonParser().parse(result).getAsJsonObject();
-        movie.setIMDBId(jsonObject.get("imdbID").getAsString());
-        movie.setTitle(jsonObject.get("Title").getAsString());
-        movie.setYear(jsonObject.get("Year").getAsString());
-        movie.setGenre(jsonObject.get("Genre").getAsString());
-        movie.setLanguage(jsonObject.get("Language").getAsString());
-        movie.setRated(jsonObject.get("Rated").getAsString());
-        movie.setRuntime(jsonObject.get("Runtime").getAsString());
-        movie.setPlot(jsonObject.get("Plot").getAsString());
-        movie.setPoster(jsonObject.get("Poster").getAsString());
+        if(QueryHandler.movieInDB(conn, id)){
+            System.out.println("Hello");
+        }else{
+            String result = template.getForObject("http://www.omdbapi.com/?i=" + id + "&apikey=fda66a87", String.class);
 
-        movieRepository.save(movie);
+            JsonObject jsonObject = new JsonParser().parse(result).getAsJsonObject();
+            movie.setIMDBId(jsonObject.get("imdbID").getAsString());
+            movie.setTitle(jsonObject.get("Title").getAsString());
+            movie.setYear(jsonObject.get("Year").getAsString());
+            movie.setGenre(jsonObject.get("Genre").getAsString());
+            movie.setLanguage(jsonObject.get("Language").getAsString());
+            movie.setRated(jsonObject.get("Rated").getAsString());
+            movie.setRuntime(jsonObject.get("Runtime").getAsString());
+            movie.setPlot(jsonObject.get("Plot").getAsString());
+            movie.setPoster(jsonObject.get("Poster").getAsString());
+
+            movieRepository.save(movie);
+        }
+
+
 
         return movie;
     }
