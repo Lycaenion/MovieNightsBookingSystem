@@ -1,5 +1,7 @@
 package program.handlers;
 
+import program.entities.Movie;
+
 import java.sql.*;
 
 public class QueryHandler {
@@ -18,5 +20,27 @@ public class QueryHandler {
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(query);
             return rs.isBeforeFirst();
+    }
+
+    public static Movie fetchMovie(Connection conn, String id) throws SQLException{
+        Movie movie = new Movie();
+
+        String query = "SELECT * FROM movie WHERE imdbid = '" + id +"'" ;
+
+        Statement st = conn.createStatement();
+        ResultSet rs = st.executeQuery(query);
+
+        while(rs.next()){
+            movie.setIMDBId(rs.getString("imdbid"));
+            movie.setGenre(rs.getString("genre"));
+            movie.setLanguage(rs.getString("language"));
+            movie.setPlot(rs.getString("plot"));
+            movie.setPoster(rs.getString("poster"));
+            movie.setRated(rs.getString("rated"));
+            movie.setRuntime(rs.getString("runtime"));
+            movie.setTitle(rs.getString("title"));
+            movie.setYear(rs.getString("year"));
+        }
+        return movie;
     }
 }

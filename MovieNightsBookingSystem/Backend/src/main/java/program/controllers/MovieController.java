@@ -56,6 +56,8 @@ public class MovieController {
 
         if(QueryHandler.movieInDB(conn, id)){
             System.out.println("Hello");
+            return QueryHandler.fetchMovie(conn, id);
+
         }else{
             String result = template.getForObject("http://www.omdbapi.com/?i=" + id + "&apikey=fda66a87", String.class);
 
@@ -71,10 +73,8 @@ public class MovieController {
             movie.setPoster(jsonObject.get("Poster").getAsString());
 
             movieRepository.save(movie);
+            return movie;
         }
 
-
-
-        return movie;
     }
 }
