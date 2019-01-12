@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import program.entities.Movie;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,9 +24,10 @@ public class MovieController {
 
     @Autowired
     MovieRepository movieRepository;
-
+    @CrossOrigin(origins = "http://127.0.0.1:3001")
     @RequestMapping("/search")
     public static List<Movie> searchByTitle(@RequestParam(value="title") String title){
+
         List<Movie> searchResult = new ArrayList<>();
 
         RestTemplate template = new RestTemplate();
