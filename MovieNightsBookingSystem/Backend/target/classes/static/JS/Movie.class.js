@@ -21,7 +21,7 @@ class Movie {
     get plot(){
         return this._plot;
     }
-    get langauge(){
+    get language(){
         return this._language;
     }
     get poster(){
@@ -30,12 +30,34 @@ class Movie {
     set imdbid(imdbid){
         this._imdbid = imdbid;
     }
-
+    set title(title){
+        this._title = title;
+    }
     set year(year){
         this._year = year;
     }
 
-    set title(title){
-        this._title = title;
+    set rated(rated){
+        this._rated = rated;
+    }
+
+    set runtime(runtime){
+        this._runtime = runtime;
+    }
+
+    set genre(genre){
+        this._genre = genre;
+    }
+
+    set plot(plot){
+        this._plot = plot;
+    }
+
+    set language(language){
+        this._language = language;
+    }
+
+    set poster(poster){
+        this._poster = poster;
     }
 }

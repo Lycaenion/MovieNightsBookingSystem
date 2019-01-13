@@ -21,7 +21,7 @@ class Movie {
     get plot(){
         return this._plot;
     }
-    get langauge(){
+    get language(){
         return this._language;
     }
     get poster(){
