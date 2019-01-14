@@ -1,7 +1,7 @@
 class RequestHandler{
 
     static searchByTitle(title){
-        let url = "http://127.0.0.1:3001/search?title="+title;
+        let url = "http://localhost:3001/search?title="+title;
         let movies = [];
         let json = [];
 
@@ -37,7 +37,7 @@ class RequestHandler{
 
     static searchById(id){
 
-        let url = "http://127.0.0.1:3001/movie?id="+id;
+        let url = "http://localhost:3001/movie?id="+id;
         let movie = new Movie();
         let json;
 

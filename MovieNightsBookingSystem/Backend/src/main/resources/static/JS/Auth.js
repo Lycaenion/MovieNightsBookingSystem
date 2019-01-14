@@ -1,14 +1,13 @@
-function start(){
+/*function start(){
     gapi.load('auth2', function(){
         auth2 = gapi.auth2.init({
-            cliet_id: '750423709392-1gkuvfcnm7tgsndcfgqfle81tvhm3m0c.apps.googleusercontent.com'
-
+            client_id : YOUR_CLIENT_ID.apps.googleusercontent.com',
+            scope: "http://www.googleapis.com/auth/calendar.events"
         });
     });
-}
+}*/
 
 $('#signinButton').click(function(){
-
     auth2.grantOfflineAccess().then(signInCallback);
 })
 
@@ -19,7 +18,7 @@ function signInCallback(authResult){
 
         $.ajax({
             type: 'POST',
-            url:'http://127.0.0.1:3001/login',
+            url:'http://localhost:3001/login',
             headers:{
                 'X-Requested-With' : 'XMLHttpRequest'
             },
