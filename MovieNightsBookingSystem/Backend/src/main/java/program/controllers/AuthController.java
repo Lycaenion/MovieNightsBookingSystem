@@ -9,24 +9,28 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import program.entities.User;
+import program.handlers.QueryHandler;
 import program.repositories.UserRepository;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
 public class AuthController {
 
     @Autowired
     UserRepository userRepository;
 
-    @PostMapping("/login")
-    public @ResponseBody
-    String login(@RequestBody String code) throws IOException {
+    @RequestMapping(value = "/storeauthcode", method = RequestMethod.POST)
+    public String login(@RequestBody String code, @RequestHeader("X-Requested-With") String encoding) throws IOException, SQLException {
+
+        if(encoding == null || encoding.isEmpty()){
+            return "Error, wrong headers";
+        }
+
         final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
         final String CREDENTIALS_FILE_PATH = "/credentials.json";
 
@@ -43,7 +47,7 @@ public class AuthController {
                 clientSecrets.getDetails().getClientId(),
                 clientSecrets.getDetails().getClientSecret(),
                 code,
-                "http://127.0.0.1:3001").execute();
+                "http://localhost:3001").execute();
 
         String accessToken = tokenResponse.getAccessToken();
         String refreshToken = tokenResponse.getRefreshToken();
@@ -63,18 +67,21 @@ public class AuthController {
 
         String email = payload.getEmail();
 
-        User user = new User();
+        if(QueryHandler.checkExistingUser(QueryHandler.connectDB(), email)){
+            return "OK";
+        }else{
+            
+            User user = new User();
 
-        user.setEmail(email);
-        user.setAccessToken(accessToken);
-        user.setRefreshToken(refreshToken);
-        user.setExpiresAt(expiresAt);
+            user.setEmail(email);
+            user.setAccessToken(accessToken);
+            user.setRefreshToken(refreshToken);
+            user.setExpiresAt(expiresAt);
 
-        userRepository.save(user);
+            userRepository.save(user);
 
-        return "OK";
-
-
-
+            return "OK";
+        }
     }
+
 }

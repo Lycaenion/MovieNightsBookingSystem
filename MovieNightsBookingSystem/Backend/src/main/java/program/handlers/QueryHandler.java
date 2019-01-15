@@ -43,4 +43,16 @@ public class QueryHandler {
         }
         return movie;
     }
+
+    public static boolean checkExistingUser(Connection conn, String email) throws SQLException {
+
+        String query = "SELECT * FROM user WHERE email = '" + email + "'";
+        Statement st = conn.createStatement();
+        ResultSet rs = st.executeQuery(query);
+
+        //rs.isBeforeFirst() returns true = there is the user in db
+
+        return rs.isBeforeFirst();
+
+    }
 }
