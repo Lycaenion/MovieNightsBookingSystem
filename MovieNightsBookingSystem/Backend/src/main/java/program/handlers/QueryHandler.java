@@ -1,6 +1,7 @@
 package program.handlers;
 
 import program.entities.Movie;
+import program.entities.User;
 
 import java.sql.*;
 
@@ -53,6 +54,24 @@ public class QueryHandler {
         //rs.isBeforeFirst() returns true = there is the user in db
 
         return rs.isBeforeFirst();
+
+    }
+
+    public static User fetchUser(Connection conn, String email) throws SQLException {
+        User user = new User();
+        String query = "SELECT * FROM user WHERE email = '" + email + "'";
+
+        Statement st = conn.createStatement();
+        ResultSet rs = st.executeQuery(query);
+
+        while(rs.next()){
+            user.setEmail(rs.getString("email"));
+            user.setAccessToken(rs.getString("accessToken"));
+            user.setRefreshToken(rs.getString("refreshToken"));
+            user.setExpiresAt(rs.getLong("expiresAt"));
+        }
+
+        return user;
 
     }
 }

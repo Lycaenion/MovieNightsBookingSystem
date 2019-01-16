@@ -70,7 +70,7 @@ public class AuthController {
         if(QueryHandler.checkExistingUser(QueryHandler.connectDB(), email)){
             return "OK";
         }else{
-            
+
             User user = new User();
 
             user.setEmail(email);
