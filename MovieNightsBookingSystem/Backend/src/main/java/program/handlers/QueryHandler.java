@@ -57,6 +57,16 @@ public class QueryHandler {
 
     }
 
+    public static void updateRefreshToken(Connection conn, String accessToken,  String email) throws SQLException {
+        String query = "UPDATE user SET access_token = '" + accessToken + "' WHERE email = '" + email + "'";
+        Statement st = conn.createStatement();
+        if(st.executeUpdate(query) == 1){
+            System.out.println("Failure to update");
+        }else{
+            System.out.println("User updated");
+        }
+    }
+
     public static User fetchUser(Connection conn, String email) throws SQLException {
         User user = new User();
         String query = "SELECT * FROM user WHERE email = '" + email + "'";
@@ -66,9 +76,9 @@ public class QueryHandler {
 
         while(rs.next()){
             user.setEmail(rs.getString("email"));
-            user.setAccessToken(rs.getString("accessToken"));
-            user.setRefreshToken(rs.getString("refreshToken"));
-            user.setExpiresAt(rs.getLong("expiresAt"));
+            user.setAccessToken(rs.getString("access_token"));
+            user.setRefreshToken(rs.getString("refresh_token"));
+            user.setExpiresAt(rs.getLong("expires_at"));
         }
 
         return user;

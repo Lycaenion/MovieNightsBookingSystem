@@ -24,7 +24,6 @@ public class MovieController {
 
     @Autowired
     MovieRepository movieRepository;
-    @CrossOrigin(origins = "http://127.0.0.1:3001")
     @RequestMapping("/search")
     public static List<Movie> searchByTitle(@RequestParam(value="title") String title){
 

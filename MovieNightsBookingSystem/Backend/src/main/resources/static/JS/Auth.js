@@ -15,10 +15,9 @@ function signInCallback(authResult){
     console.log("Logging in");
     if(authResult['code']){
         $('#signinButton').attr('style', 'display:none');
-
         $.ajax({
             type: 'POST',
-            url:'http://localhost:3001/login',
+            url:'http://localhost:3001/storeauthcode',
             headers:{
                 'X-Requested-With' : 'XMLHttpRequest'
             },
@@ -29,6 +28,7 @@ function signInCallback(authResult){
             processData : false,
             data: authResult['code']
         });
+        console.log("Tried")
     }else{
         console.log("Error");
     }

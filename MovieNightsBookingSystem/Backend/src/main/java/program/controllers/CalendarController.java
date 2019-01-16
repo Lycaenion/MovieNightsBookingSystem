@@ -4,36 +4,43 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleRefreshTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.http.HttpTransport;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 import program.entities.User;
 import program.entities.UserEvent;
 import program.handlers.QueryHandler;
 import program.repositories.UserRepository;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 
+@RestController
 public class CalendarController {
+
+    private static final String APPLICATION_NAME = "MovieNightsBookingSystem";
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
 
     @Autowired
     UserRepository userRepository;
 
-
-    private Calendar calendarService(String email) throws SQLException {
-
+    private Calendar calendarService(String email) throws SQLException, GeneralSecurityException, IOException {
+        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);
 
         GoogleCredential credential = new GoogleCredential().setAccessToken(user.getAccessToken());
@@ -44,10 +51,8 @@ public class CalendarController {
     }
 
     private GoogleCredential updateCredentials(String refreshToken) throws IOException {
-        final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-        final String CREDENTIALS_FILE_PATH = "/credentials.json";
-        InputStream in = AuthController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
-        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
+        GoogleClientSecrets clientSecrets = AuthController.getClientDetails();
 
         GoogleTokenResponse response = new GoogleRefreshTokenRequest(
                 new NetHttpTransport(), JacksonFactory.getDefaultInstance(), refreshToken,
@@ -58,14 +63,14 @@ public class CalendarController {
         return new GoogleCredential().setAccessToken(response.getAccessToken());
     }
 
-    private void refreshToken() throws IOException {
+    private void refreshToken() throws IOException, SQLException {
         List<User> users = (List<User>) userRepository.findAll();
         for(int i = 0; i < users.size(); i++){
             long expiresAt = users.get(i).getExpiresAt();
             long now = new DateTime(System.currentTimeMillis()).getValue();
             if(isTokenExpired(expiresAt, now)){
                 GoogleCredential newCredentials = updateCredentials(users.get(i).getRefreshToken());
-                userRepository.updateRefreshtoken(newCredentials.getAccessToken(), users.get(i).getEmail());
+                QueryHandler.updateRefreshToken(QueryHandler.connectDB(), newCredentials.getAccessToken(), users.get(i).getEmail());
             }
         }
     }
@@ -79,7 +84,9 @@ public class CalendarController {
 
     }
 
-    public List<UserEvent> userEvents() throws IOException, SQLException {
+    @GetMapping("/events")
+    public List<UserEvent> userEvents() throws IOException, SQLException, GeneralSecurityException {
+
         List<User> users = (List<User>) userRepository.findAll();
         List<UserEvent> allEvents = new ArrayList<>();
         refreshToken();
