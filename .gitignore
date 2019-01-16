@@ -2,7 +2,7 @@
 MovieNightsBookingSystem/MovieNightsBookingSystem/frontend/node_modules/
 
 #target
-MovieNightsBookingSystem/MovieNightsBookingSystem/backend/target/
+MovieNightsBookingSystem/MovieNightsBookingSystem/Backend/target/
 
 #Credentials
 credentials.json
