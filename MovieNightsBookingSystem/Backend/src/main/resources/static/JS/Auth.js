@@ -1,11 +1,11 @@
-/*function start(){
+function start(){
     gapi.load('auth2', function(){
         auth2 = gapi.auth2.init({
-            client_id : YOUR_CLIENT_ID.apps.googleusercontent.com',
+            client_id : "244275742778-1uretb3dr970f6r1l7fgph725hss06d8.apps.googleusercontent.com",
             scope: "http://www.googleapis.com/auth/calendar.events"
         });
     });
-}*/
+}
 
 $('#signinButton').click(function(){
     auth2.grantOfflineAccess().then(signInCallback);

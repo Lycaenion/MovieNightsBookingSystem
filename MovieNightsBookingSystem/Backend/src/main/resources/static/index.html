@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://apis.google.com/js/client:platform.js?onload=start" async defer></script>
+    <script src="/JS/Auth.js" defer></script>
     <script>
         function start() {
             gapi.load('auth2', function() {
                 auth2 = gapi.auth2.init({
-                    client_id: '244275742778-l99b3g9mp7kl4dol4rll6lme75upb9bn.apps.googleusercontent.com',
+                    client_id: '244275742778-1uretb3dr970f6r1l7fgph725hss06d8.apps.googleusercontent.com',
                     scope: "http://www.googleapis.com/auth/calendar.events"
                 });
             });
