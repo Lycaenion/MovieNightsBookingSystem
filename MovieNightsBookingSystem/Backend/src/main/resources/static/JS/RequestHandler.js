@@ -68,8 +68,29 @@ class RequestHandler{
         movie.poster = json.poster;
 
         return movie;
+    }
 
+    static bookEvent(event){
+       let url = "http://localhost:3001/bookEvent"
+       let eventJson = JSON.stringify(event);
 
+       $.ajax({
+           type : "POST",
+           url : url,
+           contentType : "application/json",
+           data : eventJson,
+           success : function () {
+               if(response == "Event booked"){
+                   alert("Something went wrong");
+               }else{
+                   alert("Din filmkväll är bokad");
+               }
 
+           },
+           error : function () {
+               alert("Error: Something went wrong");
+           }
+
+       })
     }
 }

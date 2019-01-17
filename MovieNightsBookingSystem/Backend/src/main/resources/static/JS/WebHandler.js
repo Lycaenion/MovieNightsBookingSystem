@@ -32,6 +32,8 @@ class WebHandler{
         let language = $('<p></p>');
         let img = $(`<img src=${movie.poster}>`);
 
+        let button = $(`<button id=${movie.title} type = button> Boka film</button>`);
+
         title.text(movie.title);
         year.text(movie.year);
         genre.text(movie.genre);
@@ -48,5 +50,19 @@ class WebHandler{
         div.append(plot);
 
         $('#result').append(div);
+    }
+
+    static pickMovie(movieTitle){
+
+        let paragraph = $('<p></p>');
+
+        paragraph.text(movieTitle);
+
+        $
+
+    }
+
+    static bookEvent(){
+
     }
 }

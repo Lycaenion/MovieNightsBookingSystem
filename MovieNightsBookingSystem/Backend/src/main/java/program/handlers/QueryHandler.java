@@ -76,6 +76,7 @@ public class QueryHandler {
             user.setAccessToken(rs.getString("access_token"));
             user.setRefreshToken(rs.getString("refresh_token"));
             user.setExpiresAt(rs.getLong("expires_at"));
+
         }
 
         return user;

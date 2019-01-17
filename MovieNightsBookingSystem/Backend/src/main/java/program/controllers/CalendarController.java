@@ -12,19 +12,12 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventAttendee;
-import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import program.entities.CalendarEvent;
 import program.entities.User;
@@ -34,17 +27,12 @@ import program.repositories.UserRepository;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 @RestController
 public class CalendarController {
-
-    Calendar calendar;
-    String email;
 
     private static final String APPLICATION_NAME = "MovieNightsBookingSystem";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
@@ -89,7 +77,7 @@ public class CalendarController {
     }
 
     private void refreshToken() throws IOException, SQLException {
-        System.out.println("hello");
+
         List<User> users = (List<User>) userRepository.findAll();
         for(int i = 0; i < users.size(); i++){
             long expiresAt = users.get(i).getExpiresAt();
@@ -113,26 +101,40 @@ public class CalendarController {
 
     }
 
-    @GetMapping("/availableDays")
-    public List<LocalDate> getAvailableDays(@Param(value = "userA") String emailA, @Param(value  = "userB") String emailB) throws GeneralSecurityException, SQLException, IOException {
-        List<LocalDate> availableDays = new ArrayList<>();
+    @RequestMapping("/availableDays")
+    public List<CalendarEvent> getAvailableDays(@RequestParam(value = "userA") String emailA,
+                                                @RequestParam(value = "userB") String emailB,
+                                                @RequestParam(value = "startDate") String startDate,
+                                                @RequestParam(value = "endDate") String endDate) throws GeneralSecurityException, SQLException, IOException {
+        List<CalendarEvent> availableDays = new ArrayList<>();
 
-        availableDays.add(LocalDate.now());
+        List<CalendarEvent> userAEvents = getUserEvents(emailA);
+        for (CalendarEvent event: userAEvents) {
+            availableDays.add(event);
+        }
 
+       List<CalendarEvent> userBEvents = getUserEvents(emailB);
+        for (CalendarEvent event: userBEvents) {
+            availableDays.add(event);
+        }
 
+        for (CalendarEvent event:availableDays) {
+            System.out.println(event.getStartDate());
+
+        }
         return availableDays;
     }
 
     @GetMapping("/events")
-    public List<CalendarEvent> getUserEvents() throws IOException, SQLException, GeneralSecurityException {
+    public List<CalendarEvent> getUserEvents(@Param(value = "user") String email) throws IOException, SQLException, GeneralSecurityException {
 
         //List<User> users = (List<User>) userRepository.findAll();
         refreshToken();
         List<CalendarEvent> allEvents = new ArrayList<>();
-        User user = QueryHandler.fetchUser(QueryHandler.connectDB(), "lycaenion92@gmail.com");
+        User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);
         DateTime startDate = new DateTime(System.currentTimeMillis());
-        calendar = getCalendarService(email);
-        Events events = calendar.events().list("lycaenion92@gmail.com")
+        Calendar calendar = getCalendarService(email);
+        Events events = calendar.events().list("primary")
                     .setTimeMin(startDate)
                     .setTimeZone("CET")
                     .setSingleEvents(true)
@@ -163,7 +165,7 @@ public class CalendarController {
         return allEvents;
     }
 
-    @PostMapping(value = "/bookEvent")
+    /*@PostMapping(value = "/bookEvent")
     public ResponseEntity bookEvent(@RequestBody String eventInfo) throws IOException {
 
 
@@ -213,5 +215,5 @@ public class CalendarController {
         return ResponseEntity.ok("Event booked");
 
 
-    }
+    }*/
 }

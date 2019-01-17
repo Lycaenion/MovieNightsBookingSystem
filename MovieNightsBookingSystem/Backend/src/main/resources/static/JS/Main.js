@@ -11,8 +11,11 @@
         let id = $(this).attr('id');
         $('#result').empty();
         WebHandler.displayMovie(id);
-
     });
+
+    $('#bookEvent').on('click', function(){
+
+    })
 
 
 
