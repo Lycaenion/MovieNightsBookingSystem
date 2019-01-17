@@ -26,6 +26,8 @@ import program.handlers.QueryHandler;
 import program.repositories.UserRepository;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -43,6 +45,7 @@ public class CalendarController {
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
     private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
+    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
 
     @Autowired
     UserRepository userRepository;
@@ -51,14 +54,17 @@ public class CalendarController {
 
 
     public Calendar getCalendarService(String email) throws GeneralSecurityException, IOException, SQLException {
+        InputStream in = CalendarController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);
         GoogleTokenResponse response = new GoogleRefreshTokenRequest(
                 new NetHttpTransport(),
                 JacksonFactory.getDefaultInstance(),
                 user.getRefreshToken(),
-                "798561573318-qp57ibgmiekqvh5rko17tvuk9gdlhjcs.apps.googleusercontent.com",
-                "qDUyrUXATI2p3M4NjjSpB5P4"
+                clientSecrets.getDetails().getClientId(),
+                clientSecrets.getDetails().getClientSecret()
         ).execute();
 
         GoogleCredential credential = new GoogleCredential().setAccessToken(response.getAccessToken());

@@ -51,8 +51,8 @@ public class AuthController {
                 new NetHttpTransport(),
                 JacksonFactory.getDefaultInstance(),
                 "https://www.googleapis.com/oauth2/v4/token",
-                "798561573318-qp57ibgmiekqvh5rko17tvuk9gdlhjcs.apps.googleusercontent.com",
-                "qDUyrUXATI2p3M4NjjSpB5P4",
+                clientSecrets.getDetails().getClientId(),
+                clientSecrets.getDetails().getClientSecret(),
                 code,"http://localhost:3001")
                 .execute();
 
