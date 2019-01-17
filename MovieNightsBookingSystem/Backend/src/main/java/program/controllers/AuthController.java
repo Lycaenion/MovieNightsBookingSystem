@@ -25,9 +25,11 @@ public class AuthController {
     UserRepository userRepository;
 
 
+    static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+
     public static GoogleClientSecrets getClientDetails() throws IOException {
-        final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-        final String CREDENTIALS_FILE_PATH = "/credentials.json";
+
 
         InputStream in = AuthController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         return GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
@@ -49,8 +51,8 @@ public class AuthController {
                 new NetHttpTransport(),
                 JacksonFactory.getDefaultInstance(),
                 "https://www.googleapis.com/oauth2/v4/token",
-                clientSecrets.getDetails().getClientId(),
-                clientSecrets.getDetails().getClientSecret(),
+                "798561573318-qp57ibgmiekqvh5rko17tvuk9gdlhjcs.apps.googleusercontent.com",
+                "qDUyrUXATI2p3M4NjjSpB5P4",
                 code,"http://localhost:3001")
                 .execute();
 

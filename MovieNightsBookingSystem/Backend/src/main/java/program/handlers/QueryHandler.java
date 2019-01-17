@@ -60,11 +60,8 @@ public class QueryHandler {
     public static void updateRefreshToken(Connection conn, String accessToken,  String email) throws SQLException {
         String query = "UPDATE user SET access_token = '" + accessToken + "' WHERE email = '" + email + "'";
         Statement st = conn.createStatement();
-        if(st.executeUpdate(query) == 1){
-            System.out.println("Failure to update");
-        }else{
-            System.out.println("User updated");
-        }
+        int rowsAffected = st.executeUpdate(query);
+        System.out.println(rowsAffected);
     }
 
     public static User fetchUser(Connection conn, String email) throws SQLException {

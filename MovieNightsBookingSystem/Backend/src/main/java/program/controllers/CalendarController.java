@@ -12,24 +12,39 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventAttendee;
+import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import program.entities.CalendarEvent;
 import program.entities.User;
-import program.entities.UserEvent;
 import program.handlers.QueryHandler;
 import program.repositories.UserRepository;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 @RestController
 public class CalendarController {
+
+    Calendar calendar;
+    String email;
 
     private static final String APPLICATION_NAME = "MovieNightsBookingSystem";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
@@ -39,38 +54,52 @@ public class CalendarController {
     @Autowired
     UserRepository userRepository;
 
-    private Calendar calendarService(String email) throws SQLException, GeneralSecurityException, IOException {
+
+
+
+    public Calendar getCalendarService(String email) throws GeneralSecurityException, IOException, SQLException {
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);
+        GoogleTokenResponse response = new GoogleRefreshTokenRequest(
+                new NetHttpTransport(),
+                JacksonFactory.getDefaultInstance(),
+                user.getRefreshToken(),
+                "798561573318-qp57ibgmiekqvh5rko17tvuk9gdlhjcs.apps.googleusercontent.com",
+                "qDUyrUXATI2p3M4NjjSpB5P4"
+        ).execute();
 
-        GoogleCredential credential = new GoogleCredential().setAccessToken(user.getAccessToken());
+        GoogleCredential credential = new GoogleCredential().setAccessToken(response.getAccessToken());
         return new Calendar.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance(), credential)
                 .setApplicationName("MovieNights")
                 .build();
-
     }
 
     private GoogleCredential updateCredentials(String refreshToken) throws IOException {
 
         GoogleClientSecrets clientSecrets = AuthController.getClientDetails();
 
+
         GoogleTokenResponse response = new GoogleRefreshTokenRequest(
                 new NetHttpTransport(), JacksonFactory.getDefaultInstance(), refreshToken,
-                clientSecrets.getDetails().getClientId(),
-                clientSecrets.getDetails().getClientSecret()
+                "798561573318-qp57ibgmiekqvh5rko17tvuk9gdlhjcs.apps.googleusercontent.com",
+                "qDUyrUXATI2p3M4NjjSpB5P4"
         ).execute();
 
         return new GoogleCredential().setAccessToken(response.getAccessToken());
     }
 
     private void refreshToken() throws IOException, SQLException {
+        System.out.println("hello");
         List<User> users = (List<User>) userRepository.findAll();
         for(int i = 0; i < users.size(); i++){
             long expiresAt = users.get(i).getExpiresAt();
             long now = new DateTime(System.currentTimeMillis()).getValue();
             if(isTokenExpired(expiresAt, now)){
+                System.out.println("Token has expired");
                 GoogleCredential newCredentials = updateCredentials(users.get(i).getRefreshToken());
                 QueryHandler.updateRefreshToken(QueryHandler.connectDB(), newCredentials.getAccessToken(), users.get(i).getEmail());
+            }else{
+                System.out.println("Token has not expired");
             }
         }
     }
@@ -84,22 +113,31 @@ public class CalendarController {
 
     }
 
+    @GetMapping("/availableDays")
+    public List<LocalDate> getAvailableDays(@Param(value = "userA") String emailA, @Param(value  = "userB") String emailB) throws GeneralSecurityException, SQLException, IOException {
+        List<LocalDate> availableDays = new ArrayList<>();
+
+        availableDays.add(LocalDate.now());
+
+
+        return availableDays;
+    }
+
     @GetMapping("/events")
-    public List<UserEvent> userEvents() throws IOException, SQLException, GeneralSecurityException {
+    public List<CalendarEvent> getUserEvents() throws IOException, SQLException, GeneralSecurityException {
 
-        List<User> users = (List<User>) userRepository.findAll();
-        List<UserEvent> allEvents = new ArrayList<>();
+        //List<User> users = (List<User>) userRepository.findAll();
         refreshToken();
-        for (int i = 0; i <users.size(); i++){
-            DateTime startDate = new DateTime(System.currentTimeMillis());
-            Events events = null;
-
-            events = calendarService(users.get(i).getEmail()).events().list(users.get(i).getEmail())
+        List<CalendarEvent> allEvents = new ArrayList<>();
+        User user = QueryHandler.fetchUser(QueryHandler.connectDB(), "lycaenion92@gmail.com");
+        DateTime startDate = new DateTime(System.currentTimeMillis());
+        calendar = getCalendarService(email);
+        Events events = calendar.events().list("lycaenion92@gmail.com")
                     .setTimeMin(startDate)
+                    .setTimeZone("CET")
                     .setSingleEvents(true)
                     .execute();
-
-            List<Event> items  = events.getItems();
+        List<Event> items  = events.getItems();
 
             if(items.isEmpty()){
                 System.out.println("No upcoming events");
@@ -117,12 +155,63 @@ public class CalendarController {
 
                     System.out.println(event.getSummary() + " " + start + " - " + end);
 
-                    allEvents.add(new UserEvent(event.getSummary(), start, end));
+                    allEvents.add(new CalendarEvent(event.getSummary(), start, end));
 
                 }
             }
-        }
 
         return allEvents;
+    }
+
+    @PostMapping(value = "/bookEvent")
+    public ResponseEntity bookEvent(@RequestBody String eventInfo) throws IOException {
+
+
+        JsonObject jsonObject = new JsonParser().parse(eventInfo).getAsJsonObject();
+        JsonArray jsonArray = jsonObject.getAsJsonArray("event");
+
+        JsonArray users = jsonObject.getAsJsonArray("users");
+        String date =  " ";
+        String movieTitle = " ";
+
+        for(int i = 0; i < jsonArray.size(); i++){
+            date = jsonArray.get(i).getAsJsonObject().get("date").getAsString();
+            movieTitle = jsonArray.get(i).getAsJsonObject().get("movieTitle").getAsString();
+
+        }
+
+
+        Event userEvent = new Event()
+                .setSummary("Filmkväll")
+                .setLocation("Hos mig")
+                .setDescription("Kvällens film: " + movieTitle);
+
+        DateTime startDate = new DateTime(date+"T18:00:00+01:00");
+        EventDateTime start = new EventDateTime()
+                .setDateTime(startDate)
+                .setTimeZone("CET");
+        userEvent.setStart(start);
+
+        DateTime endDate = new DateTime(date + "T23:00:00+01:00");
+        EventDateTime end = new EventDateTime()
+                .setDateTime(endDate)
+                .setTimeZone("CET");
+        userEvent.setEnd(end);
+
+        EventAttendee[] attendees = new EventAttendee[users.size()];
+        for(int j = 0; j < users.size(); j++){
+            attendees[j] = new EventAttendee().setEmail(users.get(j).getAsString());
+        }
+
+        userEvent.setAttendees(Arrays.asList(attendees));
+        try{
+            userEvent = calendar.events().insert("primary", userEvent).execute();
+        } catch (IOException e){
+            return new ResponseEntity("Event could not be booked", HttpStatus.BAD_REQUEST);
+        }
+
+        return ResponseEntity.ok("Event booked");
+
+
     }
 }

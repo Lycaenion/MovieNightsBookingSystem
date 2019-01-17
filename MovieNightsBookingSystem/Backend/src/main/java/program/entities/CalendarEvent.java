@@ -2,12 +2,12 @@ package program.entities;
 
 import com.google.api.client.util.DateTime;
 
-public class UserEvent {
+public class CalendarEvent {
     private String summary;
     private DateTime startDate;
     private DateTime endDate;
 
-    public UserEvent(String summary, DateTime startDate, DateTime endDate) {
+    public CalendarEvent(String summary, DateTime startDate, DateTime endDate) {
         this.summary = summary;
         this.startDate = startDate;
         this.endDate = endDate;
