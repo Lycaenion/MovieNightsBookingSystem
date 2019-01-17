@@ -27,6 +27,9 @@ import program.repositories.UserRepository;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -102,33 +105,54 @@ public class CalendarController {
     }
 
     @RequestMapping("/availableDays")
-    public List<CalendarEvent> getAvailableDays(@RequestParam(value = "userA") String emailA,
+    public List<LocalDate> getAvailableDays(@RequestParam(value = "userA") String emailA,
                                                 @RequestParam(value = "userB") String emailB,
                                                 @RequestParam(value = "startDate") String startDate,
                                                 @RequestParam(value = "endDate") String endDate) throws GeneralSecurityException, SQLException, IOException {
-        List<CalendarEvent> availableDays = new ArrayList<>();
-
+        List<LocalDate> availableDays = new ArrayList<>();
         List<CalendarEvent> userAEvents = getUserEvents(emailA);
-        for (CalendarEvent event: userAEvents) {
-            availableDays.add(event);
-        }
+        List<CalendarEvent> userBEvents = getUserEvents(emailB);
 
-       List<CalendarEvent> userBEvents = getUserEvents(emailB);
-        for (CalendarEvent event: userBEvents) {
-            availableDays.add(event);
-        }
+        LocalDate inputStart = LocalDate.parse(startDate);
+        LocalDate inputEnd = LocalDate.parse(endDate);
 
-        for (CalendarEvent event:availableDays) {
-            System.out.println(event.getStartDate());
-
+        for(LocalDate dateI = inputStart; !dateI.isAfter(inputEnd); dateI = dateI.plusDays(1)){
+            System.out.println(dateI);
+            if(dayIsAvailable(dateI, userAEvents, userBEvents)){
+                availableDays.add(dateI);
+            }
         }
         return availableDays;
     }
 
+    public boolean dayIsAvailable(LocalDate date, List<CalendarEvent> listA, List<CalendarEvent> listB){
+
+        return userIsAvailable(date, listA) && userIsAvailable(date, listB);
+
+    }
+
+    public boolean userIsAvailable(LocalDate date, List<CalendarEvent> list){
+
+        LocalDateTime dateTimeAt18 = LocalDateTime.of(date, LocalTime.of(18, 0));
+        LocalDateTime dateTimeAt23 = LocalDateTime.of(date, LocalTime.of(23, 0));
+
+        boolean isAvailable = true;
+
+        for (CalendarEvent event: list) {
+
+            LocalDateTime start = event.getStartDateTime();
+            LocalDateTime end = event.getEndDateTime();
+            if(!(start.isBefore(dateTimeAt18) && end.isBefore(dateTimeAt18) || start.isAfter(dateTimeAt23) && end.isAfter(dateTimeAt23))){
+                isAvailable = false;
+            }
+        }
+        System.out.println("userisAvailable: " + isAvailable);
+        return isAvailable;
+    }
+
     @GetMapping("/events")
     public List<CalendarEvent> getUserEvents(@Param(value = "user") String email) throws IOException, SQLException, GeneralSecurityException {
-
-        //List<User> users = (List<User>) userRepository.findAll();
+        
         refreshToken();
         List<CalendarEvent> allEvents = new ArrayList<>();
         User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);

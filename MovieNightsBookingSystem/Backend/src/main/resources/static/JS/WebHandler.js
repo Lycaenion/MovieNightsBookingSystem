@@ -23,7 +23,7 @@ class WebHandler{
 
     static displayMovie(id){
         let movie = RequestHandler.searchById(id);
-        let div = $('<div></div>');
+        let div = $('<div id = "movieInfo"></div>');
         let title = $('<p></p>');
         let year = $('<p></p>');
         let genre = $('<p></p>');
@@ -31,8 +31,7 @@ class WebHandler{
         let plot = $('<p></p>');
         let language = $('<p></p>');
         let img = $(`<img src=${movie.poster}>`);
-
-        let button = $(`<button id=${movie.title} type = button> Boka film</button>`);
+        let link = $(`<a href=# id="${movie.title}">välj film</a>`)
 
         title.text(movie.title);
         year.text(movie.year);
@@ -48,17 +47,14 @@ class WebHandler{
         div.append(genre);
         div.append(language);
         div.append(plot);
+        div.append(link);
 
         $('#result').append(div);
     }
 
     static pickMovie(movieTitle){
 
-        let paragraph = $('<p></p>');
-
-        paragraph.text(movieTitle);
-
-        $
+        $('#movieTitle').text(movieTitle);
 
     }
 

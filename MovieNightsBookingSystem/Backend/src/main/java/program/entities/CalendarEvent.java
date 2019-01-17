@@ -2,15 +2,19 @@ package program.entities;
 
 import com.google.api.client.util.DateTime;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 public class CalendarEvent {
     private String summary;
-    private DateTime startDate;
-    private DateTime endDate;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
 
-    public CalendarEvent(String summary, DateTime startDate, DateTime endDate) {
+    public CalendarEvent(String summary, DateTime startDateTime, DateTime endDateTime) {
         this.summary = summary;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.startDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startDateTime.getValue()), ZoneId.systemDefault());
+        this.endDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(endDateTime.getValue()), ZoneId.systemDefault());
     }
 
     public String getSummary() {
@@ -21,19 +25,19 @@ public class CalendarEvent {
         this.summary = summary;
     }
 
-    public DateTime getStartDate() {
-        return startDate;
+    public LocalDateTime getStartDateTime() {
+        return startDateTime;
     }
 
-    public void setStartDate(DateTime startDate) {
-        this.startDate = startDate;
+    public void setStartDateTime(DateTime startDateTime) {
+        this.startDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(startDateTime.getValue()), ZoneId.systemDefault());
     }
 
-    public DateTime getEndDate() {
-        return endDate;
+    public LocalDateTime getEndDateTime() {
+        return endDateTime;
     }
 
-    public void setEndDate(DateTime endDate) {
-        this.endDate = endDate;
+    public void setEndDateTime(DateTime endDateTime) {
+        this.endDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(endDateTime.getValue()), ZoneId.systemDefault());
     }
 }

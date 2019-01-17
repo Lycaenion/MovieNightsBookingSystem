@@ -11,12 +11,22 @@
         let id = $(this).attr('id');
         $('#result').empty();
         WebHandler.displayMovie(id);
+
+
     });
 
     $('#bookEvent').on('click', function(){
 
-    })
+    });
 
+   /* $('#movieInfo').on('click', 'button', function (e) {
+
+        let movieTitle = $(this).attr('id');
+        console.log(movieTitle);
+        /!*
+        WebHandler.pickMovie(movieTitle)*!/
+    });
+*/
 
 
 

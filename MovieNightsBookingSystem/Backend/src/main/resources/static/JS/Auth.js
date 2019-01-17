@@ -7,7 +7,7 @@ $('#signinButton').click(function(){
 function signInCallback(authResult){
     console.log("Logging in");
     if(authResult['code']){
-        $('#signinButton').attr('style', 'display:none');
+        $('#signinButton').attr('style', 'visibility: hidden');
         $.ajax({
             type: 'POST',
             url:'http://localhost:3001/storeauthcode',
