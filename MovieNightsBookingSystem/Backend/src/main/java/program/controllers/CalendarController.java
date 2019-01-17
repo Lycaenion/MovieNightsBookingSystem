@@ -12,13 +12,17 @@ import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventAttendee;
+import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import program.entities.CalendarEvent;
 import program.entities.User;
 import program.handlers.QueryHandler;
@@ -31,6 +35,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -152,7 +157,7 @@ public class CalendarController {
 
     @GetMapping("/events")
     public List<CalendarEvent> getUserEvents(@Param(value = "user") String email) throws IOException, SQLException, GeneralSecurityException {
-        
+
         refreshToken();
         List<CalendarEvent> allEvents = new ArrayList<>();
         User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);
@@ -189,14 +194,12 @@ public class CalendarController {
         return allEvents;
     }
 
-    /*@PostMapping(value = "/bookEvent")
+    @PostMapping(value = "/bookEvent")
     public ResponseEntity bookEvent(@RequestBody String eventInfo) throws IOException {
-
 
         JsonObject jsonObject = new JsonParser().parse(eventInfo).getAsJsonObject();
         JsonArray jsonArray = jsonObject.getAsJsonArray("event");
 
-        JsonArray users = jsonObject.getAsJsonArray("users");
         String date =  " ";
         String movieTitle = " ";
 
@@ -224,10 +227,8 @@ public class CalendarController {
                 .setTimeZone("CET");
         userEvent.setEnd(end);
 
-        EventAttendee[] attendees = new EventAttendee[users.size()];
-        for(int j = 0; j < users.size(); j++){
-            attendees[j] = new EventAttendee().setEmail(users.get(j).getAsString());
-        }
+        EventAttendee[] attendees = new EventAttendee[];
+
 
         userEvent.setAttendees(Arrays.asList(attendees));
         try{
@@ -239,5 +240,5 @@ public class CalendarController {
         return ResponseEntity.ok("Event booked");
 
 
-    }*/
+    }
 }
