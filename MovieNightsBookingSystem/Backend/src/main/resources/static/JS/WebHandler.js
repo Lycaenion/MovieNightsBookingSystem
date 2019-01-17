@@ -61,4 +61,27 @@ class WebHandler{
     static bookEvent(){
 
     }
+
+    static displayDates(){
+        let dates = RequestHandler.fetchDates();
+
+        let list = $('<ul id="dates"></ul>');
+        let li;
+        let a;
+
+        for(let i = 0; i < dates.length; i++){
+            li = $('<li></li>');
+            a = $('<a href ="#"></a>');
+
+            a.text(dates[i]);
+
+            li.append(a);
+            list.append(li);
+            console.log(dates[i]);
+        }
+
+        $('#dates').append(list)
+
+
+    }
 }

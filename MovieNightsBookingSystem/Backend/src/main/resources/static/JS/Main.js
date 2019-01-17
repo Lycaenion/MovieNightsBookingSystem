@@ -19,6 +19,11 @@
 
     });
 
+    $('#findAvailableTimes').on('click', function(){
+        WebHandler.displayDates();
+
+    })
+
    /* $('#movieInfo').on('click', 'button', function (e) {
 
         let movieTitle = $(this).attr('id');

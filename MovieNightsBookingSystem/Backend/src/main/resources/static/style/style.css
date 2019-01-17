@@ -39,6 +39,10 @@ body{
     padding: 10px;
 }
 
+#dates > li{
+    border: black 2px solid;
+}
+
 #dates > p{
     position: absolute;
     left: 90px;

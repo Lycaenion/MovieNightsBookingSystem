@@ -39,7 +39,7 @@ class RequestHandler{
 
         let url = "http://localhost:3001/movie?id="+id;
         let movie = new Movie();
-        let json;
+        let json = [];
 
         var collectSearchResult = (function (){
             $.ajax({
@@ -68,6 +68,27 @@ class RequestHandler{
         movie.poster = json.poster;
 
         return movie;
+    }
+
+    static fetchDates(){
+        let url = "http://localhost:3001/availableDays?userA=lycaenion92@gmail.com&userB=linn.p.martensson@gmail.com&startDate=2019-01-18&endDate=2019-02-01"
+        let json;
+        console.log("fetchDates");
+        $.ajax({
+            type: "GET",
+            url : url,
+            async : false,
+            dataType: "json",
+            success : function (data) {
+                json = data;
+                console.log(json);
+            },
+            error : function () {
+                console.log("Error")
+            }
+        })
+
+        return json;
     }
 
     static bookEvent(event){

@@ -15,9 +15,6 @@ import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
@@ -195,19 +192,10 @@ public class CalendarController {
     }
 
     @PostMapping(value = "/bookEvent")
-    public ResponseEntity bookEvent(@RequestBody String eventInfo) throws IOException {
-
-        JsonObject jsonObject = new JsonParser().parse(eventInfo).getAsJsonObject();
-        JsonArray jsonArray = jsonObject.getAsJsonArray("event");
-
-        String date =  " ";
-        String movieTitle = " ";
-
-        for(int i = 0; i < jsonArray.size(); i++){
-            date = jsonArray.get(i).getAsJsonObject().get("date").getAsString();
-            movieTitle = jsonArray.get(i).getAsJsonObject().get("movieTitle").getAsString();
-
-        }
+    public ResponseEntity bookEvent(@RequestParam(value = "movieTitle") String movieTitle,
+                                    @RequestParam(value = "userA") String emailA,
+                                    @RequestParam(value = "userB") String emailB,
+                                    @RequestParam(value = "date") String date) throws IOException {
 
 
         Event userEvent = new Event()
@@ -227,14 +215,22 @@ public class CalendarController {
                 .setTimeZone("CET");
         userEvent.setEnd(end);
 
-        EventAttendee[] attendees = new EventAttendee[];
+        EventAttendee[] attendees = new EventAttendee[2];
+
+        attendees[0] = new EventAttendee().setEmail(emailA);
+        attendees[1] = new EventAttendee().setEmail(emailB);
+
 
 
         userEvent.setAttendees(Arrays.asList(attendees));
-        try{
-            userEvent = calendar.events().insert("primary", userEvent).execute();
+      try{
+            userEvent = getCalendarService(emailA).events().insert("primary", userEvent).execute();
         } catch (IOException e){
             return new ResponseEntity("Event could not be booked", HttpStatus.BAD_REQUEST);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
 
         return ResponseEntity.ok("Event booked");
