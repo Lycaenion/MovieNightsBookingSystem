@@ -87,8 +87,6 @@ public class CalendarController {
     @RequestMapping(value = "/availableDays", method = RequestMethod.POST)
     public List<LocalDate> getAvailableDays(@RequestBody String calendarInfo ) throws GeneralSecurityException, SQLException, IOException {
 
-        String emailA;
-        String emailB;
         String startDate;
         String endDate;
 
@@ -191,8 +189,6 @@ public class CalendarController {
 
     @PostMapping(value = "/bookEvent")
     public ResponseEntity<String> bookEvent(@RequestBody String eventInfo) throws IOException {
-
-        System.out.println(eventInfo);
 
         String movieId;
         String date;
