@@ -10,13 +10,14 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,29 +36,28 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
 public class CalendarController {
 
-    private static final String APPLICATION_NAME = "MovieNightsBookingSystem";
+    private static final String APPLICATION_NAME = "Movie Nights";
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = "tokens";
-    private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
+    final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 
     @Autowired
     UserRepository userRepository;
 
-
+    public CalendarController() throws GeneralSecurityException, IOException {
+    }
 
 
     public Calendar getCalendarService(String email) throws GeneralSecurityException, IOException, SQLException {
         InputStream in = CalendarController.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+
         User user = QueryHandler.fetchUser(QueryHandler.connectDB(), email);
         GoogleTokenResponse response = new GoogleRefreshTokenRequest(
                 new NetHttpTransport(),
@@ -69,7 +69,7 @@ public class CalendarController {
 
         GoogleCredential credential = new GoogleCredential().setAccessToken(response.getAccessToken());
         return new Calendar.Builder(new NetHttpTransport(), JacksonFactory.getDefaultInstance(), credential)
-                .setApplicationName("MovieNights")
+                .setApplicationName(APPLICATION_NAME)
                 .build();
     }
 
@@ -80,8 +80,8 @@ public class CalendarController {
 
         GoogleTokenResponse response = new GoogleRefreshTokenRequest(
                 new NetHttpTransport(), JacksonFactory.getDefaultInstance(), refreshToken,
-                "798561573318-qp57ibgmiekqvh5rko17tvuk9gdlhjcs.apps.googleusercontent.com",
-                "qDUyrUXATI2p3M4NjjSpB5P4"
+                clientSecrets.getDetails().getClientId(),
+                clientSecrets.getDetails().getClientSecret()
         ).execute();
 
         return new GoogleCredential().setAccessToken(response.getAccessToken());
@@ -112,11 +112,32 @@ public class CalendarController {
 
     }
 
-    @RequestMapping("/availableDays")
-    public List<LocalDate> getAvailableDays(@RequestParam(value = "userA") String emailA,
-                                                @RequestParam(value = "userB") String emailB,
-                                                @RequestParam(value = "startDate") String startDate,
-                                                @RequestParam(value = "endDate") String endDate) throws GeneralSecurityException, SQLException, IOException {
+    @RequestMapping(value = "/availableDays", method = RequestMethod.POST)
+    public List<LocalDate> getAvailableDays(@RequestBody String calendarInfo ) throws GeneralSecurityException, SQLException, IOException {
+
+        String emailA;
+        String emailB;
+        String startDate;
+        String endDate;
+
+        JsonObject jsonObject = new JsonParser().parse(calendarInfo).getAsJsonObject();
+
+        startDate = jsonObject.get("startDate").getAsString();
+        endDate = jsonObject.get("endDate").getAsString();
+
+        System.out.println("startdate: " + startDate + " enddate: " + endDate);
+
+        JsonArray jsonArray = jsonObject.getAsJsonArray("users");
+
+        String[] users = new String[jsonArray.size()];
+
+        for(int i = 0; i < jsonArray.size(); i++){
+            users[i] = jsonArray.get(i).getAsString();
+        }
+
+        emailA = users[0];
+        emailB = users[1];
+
         List<LocalDate> availableDays = new ArrayList<>();
         List<CalendarEvent> userAEvents = getUserEvents(emailA);
         List<CalendarEvent> userBEvents = getUserEvents(emailB);
@@ -125,7 +146,6 @@ public class CalendarController {
         LocalDate inputEnd = LocalDate.parse(endDate);
 
         for(LocalDate dateI = inputStart; !dateI.isAfter(inputEnd); dateI = dateI.plusDays(1)){
-            System.out.println(dateI);
             if(dayIsAvailable(dateI, userAEvents, userBEvents)){
                 availableDays.add(dateI);
             }
@@ -154,12 +174,10 @@ public class CalendarController {
                 isAvailable = false;
             }
         }
-        System.out.println("userisAvailable: " + isAvailable);
         return isAvailable;
     }
 
-    @GetMapping("/events")
-    public List<CalendarEvent> getUserEvents(@Param(value = "user") String email) throws IOException, SQLException, GeneralSecurityException {
+    public List<CalendarEvent> getUserEvents(String email) throws IOException, SQLException, GeneralSecurityException {
 
         refreshToken();
         List<CalendarEvent> allEvents = new ArrayList<>();
@@ -173,10 +191,6 @@ public class CalendarController {
                     .execute();
         List<Event> items  = events.getItems();
 
-            if(items.isEmpty()){
-                System.out.println("No upcoming events");
-            }else{
-                System.out.println("Upcoming events:");
                 for(Event event : items){
                     DateTime start = event.getStart().getDateTime();
                     if(start == null){
@@ -187,18 +201,14 @@ public class CalendarController {
                         end = event.getStart().getDate();
                     }
 
-                    System.out.println(event.getSummary() + " " + start + " - " + end);
-
                     allEvents.add(new CalendarEvent(event.getSummary(), start, end));
-
                 }
-            }
 
         return allEvents;
     }
 
     @PostMapping(value = "/bookEvent")
-    public ResponseEntity bookEvent(@RequestParam(value = "movieTitle") String movieTitle,
+    public ResponseEntity<String> bookEvent(@RequestParam(value = "movieTitle") String movieTitle,
                                     @RequestParam(value = "userA") String emailA,
                                     @RequestParam(value = "userB") String emailB,
                                     @RequestParam(value = "date") String date) throws IOException {

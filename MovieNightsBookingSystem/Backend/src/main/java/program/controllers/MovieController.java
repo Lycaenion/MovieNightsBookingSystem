@@ -5,12 +5,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import program.entities.Movie;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import program.entities.Movie;
+import program.exceptions.NotFoundException;
 import program.handlers.QueryHandler;
 import program.repositories.MovieRepository;
 
@@ -24,6 +24,7 @@ public class MovieController {
 
     @Autowired
     MovieRepository movieRepository;
+
     @RequestMapping("/search")
     public static List<Movie> searchByTitle(@RequestParam(value="title") String title){
 
@@ -37,6 +38,9 @@ public class MovieController {
 
         JsonArray resultArray = jsonObject.getAsJsonArray("Search");
 
+        if(resultArray == null)throw new NotFoundException();
+
+
         for (int i = 0; i < resultArray.size(); i++){
             Movie movie = new Movie();
             movie.setIMDBId(resultArray.get(i).getAsJsonObject().get("imdbID").getAsString());
@@ -45,6 +49,7 @@ public class MovieController {
 
             searchResult.add(movie);
         }
+
 
         return searchResult;
     }
@@ -56,7 +61,6 @@ public class MovieController {
         Connection conn = QueryHandler.connectDB();
 
         if(QueryHandler.movieInDB(conn, id)){
-            System.out.println("Hello");
             return QueryHandler.fetchMovie(conn, id);
 
         }else{
