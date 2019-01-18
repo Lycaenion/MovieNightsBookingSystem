@@ -1,0 +1,72 @@
+body{
+    display: flex;
+    flex-direction: row;
+}
+
+#searchDiv{
+    height: 50px;
+    width: 300px;
+}
+
+#signinButton{
+    height: 50px;
+}
+
+#searchMovie{
+    width: 250px;
+}
+
+#result{
+    position: absolute;
+    top: 50px;
+    left: 210px;
+    padding: 10px;
+    background: aqua;
+    border-width: 2px;
+    border-color: black;
+    width: 300px;
+    height: 650px;
+
+}
+
+#dates{
+    position: absolute;
+    left: 1000px;
+    top: 50px;
+    background: coral;
+    width: 300px;
+    height: 650px;
+    padding: 10px;
+}
+
+#dates > li{
+    border: black 2px solid;
+}
+
+#dates > p{
+    position: absolute;
+    left: 90px;
+}
+
+#event{
+    padding: 10px;
+    position: absolute;
+    left: 580px;
+    width: 300px;
+    height: 500px;
+    background: aquamarine;
+    display: flex;
+    align-items: center;
+}
+
+#event > button{
+    position: absolute;
+    top: 300px;
+    left: 120px;
+}
+
+#movieNight{
+    position: absolute;
+    top: 50px;
+    left: 100px;
+}
