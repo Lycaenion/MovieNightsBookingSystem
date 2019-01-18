@@ -97,28 +97,30 @@ public class CalendarController {
         startDate = jsonObject.get("startDate").getAsString();
         endDate = jsonObject.get("endDate").getAsString();
 
-        System.out.println("startdate: " + startDate + " enddate: " + endDate);
+
+        LocalDate inputStart = LocalDate.parse(startDate);
+        LocalDate inputEnd = LocalDate.parse(endDate);
 
         JsonArray jsonArray = jsonObject.getAsJsonArray("users");
-
         String[] users = new String[jsonArray.size()];
 
         for(int i = 0; i < jsonArray.size(); i++){
             users[i] = jsonArray.get(i).getAsString();
         }
 
-        emailA = users[0];
-        emailB = users[1];
-
         List<LocalDate> availableDays = new ArrayList<>();
-        List<CalendarEvent> userAEvents = getUserEvents(emailA);
-        List<CalendarEvent> userBEvents = getUserEvents(emailB);
 
-        LocalDate inputStart = LocalDate.parse(startDate);
-        LocalDate inputEnd = LocalDate.parse(endDate);
+        List<List<CalendarEvent>> allUsersEvents = new ArrayList<>();
+
+        for(int j = 0; j < users.length; j++){
+
+            List<CalendarEvent> userEvents = getUserEvents(users[j]);
+            allUsersEvents.add(userEvents);
+
+        }
 
         for(LocalDate dateI = inputStart; !dateI.isAfter(inputEnd); dateI = dateI.plusDays(1)){
-            if(dayIsAvailable(dateI, userAEvents, userBEvents)){
+            if(dayIsAvailable(dateI,allUsersEvents)){
                 availableDays.add(dateI);
             }
         }
@@ -126,9 +128,17 @@ public class CalendarController {
         return availableDays;
     }
 
-    public boolean dayIsAvailable(LocalDate date, List<CalendarEvent> listA, List<CalendarEvent> listB){
+    public boolean dayIsAvailable(LocalDate date, List<List<CalendarEvent>> users){
 
-        return userIsAvailable(date, listA) && userIsAvailable(date, listB);
+        boolean allAvailable = true;
+
+        for (int i = 0; i < users.size(); i++){
+
+            allAvailable = allAvailable && userIsAvailable(date, users.get(i));
+
+        }
+
+        return allAvailable;
 
     }
 
@@ -181,6 +191,8 @@ public class CalendarController {
 
     @PostMapping(value = "/bookEvent")
     public ResponseEntity<String> bookEvent(@RequestBody String eventInfo) throws IOException {
+
+        System.out.println(eventInfo);
 
         String movieId;
         String date;
