@@ -57,11 +57,11 @@ public class QueryHandler {
 
     }
 
-    public static void updateRefreshToken(Connection conn, String accessToken,  String email) throws SQLException {
+    public static void updateAccessToken(Connection conn, String accessToken, String email) throws SQLException {
         String query = "UPDATE user SET access_token = '" + accessToken + "' WHERE email = '" + email + "'";
         Statement st = conn.createStatement();
         int rowsAffected = st.executeUpdate(query);
-        System.out.println(rowsAffected);
+        System.out.println("user access token has been refreshed (rows affected : " + rowsAffected + ")");
     }
 
     public static User fetchUser(Connection conn, String email) throws SQLException {
